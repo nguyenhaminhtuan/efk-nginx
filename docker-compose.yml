@@ -1,0 +1,71 @@
+version: '3.7'
+services:
+  elasticsearch:
+    build: ./elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xmx256m -Xms256m
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    expose:
+      - 9200
+    networks:
+      - efk
+  fluentd:
+    build: ./fluentd
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+    depends_on:
+      - elasticsearch
+    networks:
+      - efk
+  kibana:
+    build: ./kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    networks:
+      - efk
+  user-service:
+    build: ./user-service
+    expose:
+      - 8080-8082
+    environment:
+      - PORT=8080
+      - LOG_LEVEL=info
+    depends_on:
+      - fluentd
+    networks:
+      - efk
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: service.user
+  reverse-proxy:
+    build: ./nginx
+    environment:
+      - NGINX_HOST=localhost
+    ports:
+      - 8080:80
+    depends_on:
+      - user-service
+    networks:
+      - efk
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: nginx.access
+
+volumes:
+  elasticsearch:
+    driver: local
+
+networks:
+  efk:
+    driver: bridge

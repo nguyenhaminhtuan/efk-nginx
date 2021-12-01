@@ -1,0 +1,17 @@
+{
+  "name": "user-service",
+  "version": "1.0.0",
+  "main": "src/app.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node ."
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "pino": "^7.5.0",
+    "pino-http": "^6.3.2"
+  },
+  "devDependencies": {
+    "pino-pretty": "^7.2.0"
+  }
+}
