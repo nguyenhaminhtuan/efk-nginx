@@ -28,6 +28,13 @@ router
   })
   .post('/', (req, res) => {
     const user = req.body;
+    const existsUser = users.find((u) => u.username === user.username);
+    if (existsUser) {
+      const error = new Error('Username already exists');
+      error.status = 409;
+      throw error;
+    }
+
     logger.info('Creating user with username %s', user.username);
     users.push(user);
     logger.info('User %o created', user);
